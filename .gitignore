@@ -1,8 +1,6 @@
-packages/*
-bin/*
-obj/*
-*/bin/*
-*/obj/*
+WindowsSDK/packages/*
+WindowsSDK/*/bin/*
+WindowsSDK/*/obj/*
 *.suo
 *.user
-.vs/
+.vs
