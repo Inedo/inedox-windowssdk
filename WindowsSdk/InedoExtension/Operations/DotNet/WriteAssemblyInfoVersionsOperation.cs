@@ -45,7 +45,9 @@ namespace Inedo.Extensions.WindowsSdk.Operations.DotNet
         {
             try
             {
-                new Version(this.Version);
+                var dotStar = this.Version.EndsWith(".*");
+                var version = dotStar ? this.Version.Substring(0, this.Version.Length - 2) : this.Version;
+                new Version(version);
             }
             catch
             {
