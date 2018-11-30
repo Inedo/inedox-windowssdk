@@ -1,6 +1,6 @@
 # inedox-windowssdk
 
-[![Build status](https://ci.appveyor.com/api/projects/status/3avkcbr4od25qhno/branch/master?svg=true)](https://ci.appveyor.com/project/Inedo/inedox-windowssdk/branch/master)
+[![Build status](https://buildmaster.inedo.com/api/ci-badges/image?API_Key=badges&$ApplicationId=4)](https://buildmaster.inedo.com/api/ci-badges/link?API_Key=badges&$ApplicationId=4)
 
 Contains actions to build software targeting Windows or .NET platforms.
 
