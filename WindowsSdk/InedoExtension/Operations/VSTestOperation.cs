@@ -20,7 +20,7 @@ namespace Inedo.Extensions.WindowsSdk.Operations
     [Description("Runs VSTest unit tests on a specified test project, recommended for tests in VS 2012 and later.")]
     public sealed class VSTestOperation : ExecuteOperation
     {
-        private static readonly LazyRegex DurationRegex = new LazyRegex(@"^(?<1>[0-9]+):(?<2>[0-9]):(?<3>[0-9]+)(\.(?<4>[0-9]+))?$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+        private static readonly LazyRegex DurationRegex = new LazyRegex(@"^(?<1>[0-9]+):(?<2>[0-9]+):(?<3>[0-9]+)(\.(?<4>[0-9]+))?$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
         [Required]
         [ScriptAlias("TestContainer")]
