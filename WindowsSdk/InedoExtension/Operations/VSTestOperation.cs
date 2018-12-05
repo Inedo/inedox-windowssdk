@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
@@ -19,6 +20,8 @@ namespace Inedo.Extensions.WindowsSdk.Operations
     [Description("Runs VSTest unit tests on a specified test project, recommended for tests in VS 2012 and later.")]
     public sealed class VSTestOperation : ExecuteOperation
     {
+        private static readonly LazyRegex DurationRegex = new LazyRegex(@"^(?<1>[0-9]+):(?<2>[0-9]):(?<3>[0-9]+)(\.(?<4>[0-9]+))?$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+
         [Required]
         [ScriptAlias("TestContainer")]
         [DisplayName("Test container")]
@@ -105,6 +108,8 @@ namespace Inedo.Extensions.WindowsSdk.Operations
 
             var testRecorder = await context.TryGetServiceAsync<IUnitTestRecorder>();
 
+            bool failures = false;
+
             foreach (var result in doc.Element("TestRun").Element("Results").Elements("UnitTestResult"))
             {
                 var testName = (string)result.Attribute("testName");
@@ -130,19 +135,46 @@ namespace Inedo.Extensions.WindowsSdk.Operations
                 {
                     status = UnitTestStatus.Failed;
                     testResult = GetResultTextFromOutput(output);
+                    failures = true;
                 }
-
-                this.Log(
-                    status == UnitTestStatus.Failed ? MessageLevel.Error : MessageLevel.Information,
-                    $"{testName}: {testResult}"
-                );
 
                 if (testRecorder != null)
                 {
                     var startDate = (DateTimeOffset)result.Attribute("startTime");
-                    var duration = (TimeSpan)result.Attribute("duration");
+                    var duration = parseDuration((string)result.Attribute("duration"));
                     await testRecorder.RecordUnitTestAsync(AH.CoalesceString(this.TestGroup, "Unit Tests"), testName, status, testResult, startDate, duration);
                 }
+            }
+
+            if (failures)
+                this.LogError("One or more unit tests failed.");
+            else
+                this.LogInformation("Tests completed with no failures.");
+
+            TimeSpan parseDuration(string s)
+            {
+                if (!string.IsNullOrWhiteSpace(s))
+                {
+                    var m = DurationRegex.Match(s);
+                    if (m.Success)
+                    {
+                        int hours = int.Parse(m.Groups[1].Value);
+                        int minutes = int.Parse(m.Groups[2].Value);
+                        int seconds = int.Parse(m.Groups[3].Value);
+
+                        var timeSpan = new TimeSpan(hours, minutes, seconds);
+
+                        if (m.Groups[4].Success)
+                        {
+                            var fractionalSeconds = double.Parse("0." + m.Groups[4].Value);
+                            timeSpan += TimeSpan.FromSeconds(fractionalSeconds);
+                        }
+
+                        return timeSpan;
+                    }
+                }
+
+                return TimeSpan.Zero;
             }
         }
 
