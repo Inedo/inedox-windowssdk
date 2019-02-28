@@ -48,7 +48,8 @@ namespace Inedo.Extensions.WindowsSdk.Operations
         [DisplayName("VSTest Path")]
         [DefaultValue("$VSTestExePath")]
         [Description(@"The path to vstest.console.exe, typically: <br /><br />"
-    + @"%VSINSTALLDIR%\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe")]
+    + @"%VSINSTALLDIR%\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe<br /><br />" 
+    + "Leave this value blank to auto-detect the latest vstest.console.exe using vswhere.exe")]
         public string VsTestPath { get; set; }
 
         public override async Task ExecuteAsync(IOperationExecutionContext context)
@@ -74,7 +75,7 @@ namespace Inedo.Extensions.WindowsSdk.Operations
                 new RemoteProcessStartInfo
                 {
                     FileName = vsTestPath,
-                    Arguments = $"\"{this.TestContainer}\" /logger:trx {this.AdditionalArguments}",
+                    Arguments = $"\"{containerPath}\" /logger:trx {this.AdditionalArguments}",
                     WorkingDirectory = sourceDirectory
                 }
             );
@@ -192,13 +193,24 @@ namespace Inedo.Extensions.WindowsSdk.Operations
         {
             if (string.IsNullOrWhiteSpace(this.VsTestPath))
             {
-                this.LogError("Unable to find vstest.console.exe. Verify that VSTest is installed and set a $VSTestExePath server variable to its full path.");
+                this.LogDebug("$VsTestExePath variable not configured and VsTestPath not specified, attempting to find using vswhere.exe...");
+                var path = await this.FindVsTestConsoleWithVsWhereAsync(context).ConfigureAwait(false);
+
+                if (path != null)
+                {
+                    this.LogDebug("Using VS test path: " + path);
+                    return path;
+                }
+
+                this.LogError("Unable to find vstest.console.exe. Verify that VSTest is installed and set a $VSTestExePath variable in context to its full path.");
                 return null;
             }
             else
             {
                 this.LogDebug("VSTestExePath = " + this.VsTestPath);
-                if (!await (await context.Agent.GetServiceAsync<IFileOperationsExecuter>()).FileExistsAsync(this.VsTestPath))
+                var fileOps = await context.Agent.GetServiceAsync<IFileOperationsExecuter>().ConfigureAwait(false);
+                bool exists = await fileOps.FileExistsAsync(this.VsTestPath).ConfigureAwait(false);
+                if (!exists)
                 {
                     this.LogError($"The file {this.VsTestPath} does not exist. Verify that VSTest is installed.");
                     return null;
@@ -206,6 +218,59 @@ namespace Inedo.Extensions.WindowsSdk.Operations
 
                 return this.VsTestPath;
             }
+        }
+
+        private async Task<string> FindVsTestConsoleWithVsWhereAsync(IOperationExecutionContext context)
+        {
+            var remoteMethodEx = await context.Agent.GetServiceAsync<IRemoteMethodExecuter>().ConfigureAwait(false);
+
+            string vsWherePath = await remoteMethodEx.InvokeFuncAsync(RemoteGetVsWherePath).ConfigureAwait(false);
+            string outputFile = await remoteMethodEx.InvokeFuncAsync(Path.GetTempFileName).ConfigureAwait(false);
+
+            // vswhere.exe documentation: https://github.com/Microsoft/vswhere/wiki
+            // component IDs documented here: https://docs.microsoft.com/en-us/visualstudio/install/workload-and-component-ids
+            var startInfo = new RemoteProcessStartInfo
+            {
+                FileName = vsWherePath,
+                WorkingDirectory = Path.GetDirectoryName(vsWherePath),
+                Arguments = @"-format xml -utf8 -latest -sort -requires Microsoft.VisualStudio.Workload.ManagedDesktop Microsoft.VisualStudio.Workload.Web -requiresAny -find **\vstest.console.exe",
+                OutputFileName = outputFile
+            };
+
+            this.LogDebug("Process: " + startInfo.FileName);
+            this.LogDebug("Arguments: " + startInfo.Arguments);
+            this.LogDebug("Working directory: " + startInfo.WorkingDirectory);
+
+            await this.ExecuteCommandLineAsync(context, startInfo).ConfigureAwait(false);
+
+            var fileOps = await context.Agent.GetServiceAsync<IFileOperationsExecuter>().ConfigureAwait(false);
+
+            XDocument xdoc;
+            using (var file = await fileOps.OpenFileAsync(outputFile, FileMode.Open, FileAccess.Read).ConfigureAwait(false))
+            {
+                xdoc = XDocument.Load(file);
+            }
+
+            var files = from f in xdoc.Root.Descendants("file")
+                        let file = f.Value
+                        select file;
+
+            var filePath = files.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(filePath))
+                return null;
+
+            return filePath;
+        }
+
+        private string RemoteGetVsWherePath()
+        {
+            string vsWherePath = PathEx.Combine(
+                Path.GetDirectoryName(typeof(VSTestOperation).Assembly.Location),
+                "vswhere.exe"
+            );
+
+            return vsWherePath;
         }
 
         private static string GetResultTextFromOutput(XElement output)
