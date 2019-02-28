@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Inedo.Agents;
 using Inedo.Diagnostics;
 using Inedo.Documentation;
@@ -59,7 +61,8 @@ namespace Inedo.Extensions.WindowsSdk.Operations.MSBuild
         [ScriptAlias("MSBuildToolsPath")]
         [DefaultValue("$MSBuildToolsPath")]
         [DisplayName("MSBuild tools path")]
-        [Description("Full path of the directory containing the MSBuild tools to use. This is usually similar to C:\\Program Files (x86)\\MSBuild\\14.0\\Bin.")]
+        [Description("Full path of the directory containing the MSBuild tools to use. This is usually similar to C:\\Program Files (x86)\\MSBuild\\14.0\\Bin. "
+            + "If no value is supplied, the operation will use vswhere to determine the path to the latest installation of MSBuild")]
         public string MSBuildToolsPath { get; set; }
 
         [ScriptAlias("To")]
@@ -125,7 +128,7 @@ namespace Inedo.Extensions.WindowsSdk.Operations.MSBuild
 
             var allArgs = $"\"/logger:{msbuildLoggerPath}\" /noconsolelogger " + arguments;
 
-            var msBuildPath = this.GetMSBuildToolsPath();
+            var msBuildPath = await this.GetMSBuildToolsPath(context).ConfigureAwait(false);
             if (msBuildPath == null)
                 return -1;
 
@@ -144,7 +147,7 @@ namespace Inedo.Extensions.WindowsSdk.Operations.MSBuild
             
             return await this.ExecuteCommandLineAsync(context, startInfo).ConfigureAwait(false);
         }
-        private string GetMSBuildToolsPath()
+        private async Task<string> GetMSBuildToolsPath(IRemoteOperationExecutionContext context)
         {
             if (!string.IsNullOrWhiteSpace(this.MSBuildToolsPath))
             {
@@ -152,41 +155,93 @@ namespace Inedo.Extensions.WindowsSdk.Operations.MSBuild
                 return this.MSBuildToolsPath;
             }
 
-            this.LogInformation("$MSBuildToolsPath variable is not set. Attempting to find latest version from the registry...");
+            string path = await this.FindMSBuildPathUsingVSWhereAsync(context).ConfigureAwait(false);
 
-            string path = null;
+            if (path != null)
+            {
+                this.LogDebug("MSBuildToolsPath: " + path);
+                return path;
+            }
 
+            this.LogDebug("Could not find MSBuildToolsPath using vswhere.exe, falling back to registry...");
+
+            path = this.FindMSBuildUsingRegistry();
+
+            if (path != null)
+            {
+                this.LogDebug("MSBuildToolsPath: " + path);
+                return path;
+            }
+
+            this.LogError(@"Could not determine MSBuildToolsPath value on this server. To resolve this issue, ensure that MSBuild is available on this server (e.g. by installing the Visual Studio Build Tools) and retry the build, or create a server-scoped variable named $MSBuildToolsPath set to the location of the MSBuild tools. For example, the tools included with Visual Studio 2017 could be installed to C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin");
+            return null;            
+        }
+
+        private async Task<string> FindMSBuildPathUsingVSWhereAsync(IRemoteOperationExecutionContext context)
+        {
+            this.LogDebug("$MSBuildToolsPath variable is not set. Attempting to find the path to the latest version using vswhere.exe...");
+
+            string vsWherePath = PathEx.Combine(
+                Path.GetDirectoryName(typeof(BuildMSBuildProjectOperation).Assembly.Location),
+                "vswhere.exe"
+            );
+
+            string outputFile = Path.GetTempFileName();
+
+            // vswhere.exe documentation: https://github.com/Microsoft/vswhere/wiki
+            // component IDs documented here: https://docs.microsoft.com/en-us/visualstudio/install/workload-and-component-ids
+            var startInfo = new RemoteProcessStartInfo
+            {
+                FileName = vsWherePath,
+                WorkingDirectory = Path.GetDirectoryName(vsWherePath),
+                Arguments = @"-format xml -utf8 -latest -sort -requires Microsoft.Component.MSBuild -find **\MSBuild.exe",
+                OutputFileName = outputFile
+            };
+
+            this.LogDebug("Process: " + startInfo.FileName);
+            this.LogDebug("Arguments: " + startInfo.Arguments);
+            this.LogDebug("Working directory: " + startInfo.WorkingDirectory);
+
+            await this.ExecuteCommandLineAsync(context, startInfo).ConfigureAwait(false);
+
+            var xdoc = XDocument.Load(outputFile);
+
+            var files = from f in xdoc.Root.Descendants("file")
+                        let file = f.Value
+                        // prefer 32-bit MSBuild
+                        orderby file.IndexOf("amd64", StringComparison.OrdinalIgnoreCase) > -1 ? 1 : 0
+                        select file;
+
+            var filePath = files.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(filePath))
+                return null;
+
+            return Path.GetDirectoryName(filePath);
+        }
+
+        private string FindMSBuildUsingRegistry()
+        {
             using (var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions", false))
             {
-                if (key != null)
+                if (key == null)
+                    return null;
+
+                var latestVersion = key
+                    .GetSubKeyNames()
+                    .Select(k => new { Key = k, Version = TryParse(k) })
+                    .Where(v => v.Version != null)
+                    .OrderByDescending(v => v.Version)
+                    .FirstOrDefault();
+
+                if (latestVersion == null)
+                    return null;
+
+                using (var subkey = key.OpenSubKey(latestVersion.Key, false))
                 {
-
-                    var latestVersion = key
-                        .GetSubKeyNames()
-                        .Select(k => new { Key = k, Version = TryParse(k) })
-                        .Where(v => v.Version != null)
-                        .OrderByDescending(v => v.Version)
-                        .FirstOrDefault();
-
-                    if (latestVersion == null)
-                        return null;
-
-                    using (var subkey = key.OpenSubKey(latestVersion.Key, false))
-                    {
-                        path = subkey.GetValue("MSBuildToolsPath") as string;
-                    }
+                    return subkey.GetValue("MSBuildToolsPath") as string;
                 }
             }
-
-            if (string.IsNullOrWhiteSpace(path))
-            {
-                this.LogError(@"Could not determine MSBuildToolsPath value on this server. To resolve this issue, ensure that MSBuild is available on this server and create a server-scoped variable named $MSBuildToolsPath set to the location of the MSBuild tools. For example, the tools included with Visual Studio 2015 are usually installed to C:\Program Files (x86)\MSBuild\14.0\Bin");
-                return null;
-            }
-
-            this.LogDebug("MSBuildToolsPath: " + path);
-
-            return path;
         }
 
         protected override void LogProcessOutput(string text)
