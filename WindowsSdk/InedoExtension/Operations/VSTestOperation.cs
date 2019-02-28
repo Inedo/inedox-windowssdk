@@ -233,7 +233,7 @@ namespace Inedo.Extensions.WindowsSdk.Operations
             {
                 FileName = vsWherePath,
                 WorkingDirectory = Path.GetDirectoryName(vsWherePath),
-                Arguments = @"-format xml -utf8 -latest -sort -requires Microsoft.VisualStudio.Workload.ManagedDesktop Microsoft.VisualStudio.Workload.Web -requiresAny -find **\vstest.console.exe",
+                Arguments = @"-products * -nologo -format xml -utf8 -latest -sort -requires Microsoft.VisualStudio.Workload.ManagedDesktop Microsoft.VisualStudio.Workload.Web -requiresAny -find **\vstest.console.exe",
                 OutputFileName = outputFile
             };
 

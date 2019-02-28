@@ -194,7 +194,7 @@ namespace Inedo.Extensions.WindowsSdk.Operations.MSBuild
             {
                 FileName = vsWherePath,
                 WorkingDirectory = Path.GetDirectoryName(vsWherePath),
-                Arguments = @"-format xml -utf8 -latest -sort -requires Microsoft.Component.MSBuild -find **\MSBuild.exe",
+                Arguments = @"-products * -nologo -format xml -utf8 -latest -sort -requires Microsoft.Component.MSBuild -find **\MSBuild.exe",
                 OutputFileName = outputFile
             };
 
