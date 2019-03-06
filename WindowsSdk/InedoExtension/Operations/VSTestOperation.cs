@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -167,7 +168,7 @@ namespace Inedo.Extensions.WindowsSdk.Operations
 
                         if (m.Groups[4].Success)
                         {
-                            var fractionalSeconds = double.Parse("0." + m.Groups[4].Value);
+                            var fractionalSeconds = double.Parse("0." + m.Groups[4].Value, CultureInfo.InvariantCulture);
                             timeSpan += TimeSpan.FromSeconds(fractionalSeconds);
                         }
 
