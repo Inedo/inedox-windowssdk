@@ -16,7 +16,7 @@ namespace Inedo.Extensions.WindowsSdk.Operations.DotNet
 {
     [Tag(".net")]
     [DisplayName("Set Project Version")]
-    [ScriptAlias("SetProjectVersion")]
+    [ScriptAlias("Set-ProjectVersion")]
     [Description("Sets the version elements in .NET project files to a specified value.")]
     [ScriptNamespace("DotNet")]
     [SeeAlso(typeof(DotNetBuildOperation))]
