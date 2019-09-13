@@ -24,11 +24,22 @@ namespace Inedo.Extensions.WindowsSdk.Operations.DotNet
     [SeeAlso(typeof(SetProjectVersionOperation))]
     public sealed class WriteAssemblyInfoVersionsOperation : ExecuteOperation
     {
-        internal static readonly LazyRegex AttributeRegex = new LazyRegex(@"(?<1>(System\.Reflection\.)?Assembly(File|Informational)?Version(Attribute)?\s*\(\s*"")[^""]*(?<2>""\s*\))", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+        internal static readonly LazyRegex AttributeRegex = new LazyRegex(@"(?<1>(System\.Reflection\.)?Assembly(?<2>File|Informational)?Version(Attribute)?\s*\(\s*"")[^""]*(?<3>""\s*\))", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
         
-        [ScriptAlias("Version")]
+        [ScriptAlias("AssemblyVersion")]
+        [ScriptAlias("Version", Obsolete = true)]
+        [DisplayName("Assembly version")]
         [DefaultValue("$ReleaseNumber.$PackageNumber")]
         public string Version { get; set; }
+        [ScriptAlias("FileVersion")]
+        [DisplayName("File version")]
+        [PlaceholderText("same as AssemblyVersion")]
+        public string FileVersion { get; set; }
+        [ScriptAlias("InformationalVersion")]
+        [DisplayName("Informational version")]
+        [PlaceholderText("same as AssemblyVersion")]
+        public string InformationalVersion { get; set; }
+
         [ScriptAlias("FromDirectory")]
         [DisplayName("From directory")]
         [PlaceholderText("$WorkingDirectory")]
@@ -70,8 +81,6 @@ namespace Inedo.Extensions.WindowsSdk.Operations.DotNet
                 return;
             }
 
-            var replacementText = "${1}" + this.Version + "${2}";
-
             foreach (var match in matches)
             {
                 this.LogInformation($"Writing assembly versions attributes to {match.FullName}...");
@@ -87,7 +96,7 @@ namespace Inedo.Extensions.WindowsSdk.Operations.DotNet
 
                 if (AttributeRegex.IsMatch(text))
                 {
-                    text = AttributeRegex.Replace(text, replacementText);
+                    text = AttributeRegex.Replace(text, this.GetReplacement);
 
                     var attr = match.Attributes;
                     if ((attr & FileAttributes.ReadOnly) != 0)
@@ -116,6 +125,21 @@ namespace Inedo.Extensions.WindowsSdk.Operations.DotNet
                     new MaskHilite(config[nameof(Includes)], config[nameof(Excludes)])
                 )
             );
+        }
+
+        private string GetReplacement(Match m)
+        {
+            string version;
+            var attribute = m.Groups[2];
+
+            if (attribute.Value == "File")
+                version = AH.CoalesceString(this.FileVersion, this.Version);
+            else if (attribute.Value == "Informational")
+                version = AH.CoalesceString(this.InformationalVersion, this.Version);
+            else
+                version = this.Version;
+
+            return m.Groups[1].Value + version + m.Groups[3].Value;
         }
     }
 }
