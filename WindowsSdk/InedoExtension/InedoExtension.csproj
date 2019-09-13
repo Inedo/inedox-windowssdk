@@ -69,6 +69,7 @@
   <ItemGroup>
     <Compile Include="InternalExtensions.cs" />
     <Compile Include="Operations\DotNet\DotNetBuildOperation.cs" />
+    <Compile Include="Operations\DotNet\GetDependenciesOperation.cs" />
     <Compile Include="Operations\DotNet\SetProjectVersionOperation.cs" />
     <Compile Include="Operations\VSTestOperation.cs" />
     <Compile Include="SuggestionProviders\NuGetPackageSourceSuggestionProvider.cs" />
