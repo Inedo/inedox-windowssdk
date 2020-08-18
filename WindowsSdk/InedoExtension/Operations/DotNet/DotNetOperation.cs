@@ -16,7 +16,6 @@ using Inedo.Web;
 namespace Inedo.Extensions.WindowsSdk.Operations.DotNet
 {
     [Tag(".net")]
-    [ScriptNamespace("DotNet")]
     [DefaultProperty(nameof(ProjectPath))]
     [Note("This operation requires .NET Core build tools v2.0+ to be installed on the server.")]
     [SeeAlso(typeof(SetProjectVersionOperation))]

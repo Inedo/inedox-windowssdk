@@ -6,7 +6,8 @@ namespace Inedo.Extensions.WindowsSdk.Operations.DotNet
 {
     [DisplayName("dotnet publish")]
     [ScriptAlias("Publish")]
-    [Description("Builds a .NET Core/Framework/Standard project using dotnet publish.")]
+    [ScriptNamespace("DotNet")]
+    [Description("Publishes a .NET Core/Framework/Standard project using dotnet publish.")]
     [Example(@"# Publish ~\src\MyProject.csproj with Release configuration for .net core 3.1, restoring NuGet packages from the InternalNuGet source
 DotNet::Publish ~\src\MyProject.csproj
 (

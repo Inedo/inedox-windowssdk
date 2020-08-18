@@ -6,6 +6,7 @@ namespace Inedo.Extensions.WindowsSdk.Operations.DotNet
 {
     [DisplayName("dotnet build")]
     [ScriptAlias("Build")]
+    [ScriptNamespace("DotNet")]
     [Description("Builds a .NET Core/Framework/Standard project using dotnet build.")]
     [Example(@"# Build ~\src\MyProject.csproj with Release configuration, restoring NuGet packages from the InternalNuGet source
 DotNet::Build ~\src\MyProject.csproj
