@@ -20,9 +20,8 @@ DotNet::Publish ~\src\MyProject.csproj
     [SeeAlso(typeof(DotNetBuildOperation))]
     public sealed class DotNetPublishOperation : DotNetOperation
     {
-        [Category("Advanced")]
         [ScriptAlias("SelfContained")]
-        [DisplayName("Self-contained:")]
+        [DisplayName("Self-contained")]
         public bool SelfContained { get; set; }
 
         protected override string CommandName => "publish";
