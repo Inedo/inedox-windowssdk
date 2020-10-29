@@ -48,6 +48,10 @@ namespace Inedo.Extensions.WindowsSdk.Operations.DotNet
         [Description("For building multiple target frameworks at once, leave this field blank and also leave \"Output\" blank.")]
         public string Framework { get; set; }
         [Category("Advanced")]
+        [ScriptAlias("Runtime")]
+        [SuggestableValue(typeof(RuntimeSuggestionProvider))]
+        public string Runtime { get; set; }
+        [Category("Advanced")]
         [ScriptAlias("Output")]
         [Description("Specifies an output directory for the build. This is only valid if \"Framework\" is also specified.")]
         public string Output { get; set; }
@@ -98,6 +102,12 @@ namespace Inedo.Extensions.WindowsSdk.Operations.DotNet
                 args.AppendArgument(this.Framework);
             }
 
+            if (!string.IsNullOrWhiteSpace(this.Runtime))
+            {
+                args.Append("--runtime ");
+                args.AppendArgument(this.Runtime);
+            }
+
             if (this.Force)
                 args.Append("--force ");
 
@@ -137,6 +147,8 @@ namespace Inedo.Extensions.WindowsSdk.Operations.DotNet
                 args.AppendArgument(source.FeedUrl);
             }
 
+            this.AppendAdditionalArguments(args);
+
             if (!string.IsNullOrWhiteSpace(this.AdditionalArguments))
                 args.Append(this.AdditionalArguments);
 
@@ -158,6 +170,10 @@ namespace Inedo.Extensions.WindowsSdk.Operations.DotNet
             );
 
             this.Log(res == 0 ? MessageLevel.Debug : MessageLevel.Error, "dotnet exit code: " + res);
+        }
+
+        protected virtual void AppendAdditionalArguments(StringBuilder args)
+        {
         }
 
         protected override void LogProcessOutput(string text) => this.Log(WarningRegex.IsMatch(text) ? MessageLevel.Warning : MessageLevel.Debug, text);

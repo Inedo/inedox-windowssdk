@@ -76,6 +76,7 @@
     <Compile Include="Operations\DotNet\SetProjectVersionOperation.cs" />
     <Compile Include="Operations\VSTestOperation.cs" />
     <Compile Include="SuggestionProviders\NuGetPackageSourceSuggestionProvider.cs" />
+    <Compile Include="SuggestionProviders\RuntimeSuggestionProvider.cs" />
     <Compile Include="SuggestionProviders\TargetFrameworkSuggestionProvider.cs" />
     <Compile Include="VariableFunctions\DotNetExePathVariableFunction.cs" />
     <Compile Include="VariableFunctions\MSBuildToolsPathVariableFunction.cs" />

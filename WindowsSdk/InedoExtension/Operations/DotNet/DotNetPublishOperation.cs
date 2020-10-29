@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Text;
 using Inedo.Documentation;
 using Inedo.Extensibility;
 
@@ -13,11 +14,22 @@ DotNet::Publish ~\src\MyProject.csproj
 (
     Configuration: Release,
     Framework: netcoreapp3.1,
+    Runtime: win-x64,
     PackageSource: InternalNuGet
 );")]
     [SeeAlso(typeof(DotNetBuildOperation))]
     public sealed class DotNetPublishOperation : DotNetOperation
     {
+        [Category("Advanced")]
+        [ScriptAlias("SelfContained")]
+        [DisplayName("Self-contained:")]
+        public bool SelfContained { get; set; }
+
         protected override string CommandName => "publish";
+
+        protected override void AppendAdditionalArguments(StringBuilder args)
+        {
+            args.AppendArgument(this.SelfContained ? "--self-contained" : "--no-self-contained");
+        }
     }
 }
