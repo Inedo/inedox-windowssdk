@@ -9,7 +9,7 @@ using Inedo.Extensibility;
 [assembly: ComVisible(false)]
 [assembly: AssemblyCompany("Inedo, LLC")]
 [assembly: AssemblyProduct("BuildMaster")]
-[assembly: AssemblyCopyright("Copyright © 2008 - 2019")]
+[assembly: AssemblyCopyright("Copyright © 2021")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
 [assembly: CLSCompliant(false)]

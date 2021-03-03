@@ -1,146 +1,27 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B4EE9927-63B2-4CB3-9718-F5D7A632F589}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Inedo.Extensions.WindowsSdk</RootNamespace>
     <AssemblyName>WindowsSdk</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
+    <RootNamespace>Inedo.Extensions.WindowsSdk</RootNamespace>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net452</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Inedo.Agents.Client, Version=1000.0.0.0, Culture=neutral, PublicKeyToken=9de986a2f8db80fc, processorArchitecture=MSIL">
-      <HintPath>..\packages\Inedo.SDK.1.5.0\lib\net452\Inedo.Agents.Client.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Inedo.ExecutionEngine, Version=1000.0.0.0, Culture=neutral, PublicKeyToken=68703f0e52007e75, processorArchitecture=MSIL">
-      <HintPath>..\packages\Inedo.SDK.1.5.0\lib\net452\Inedo.ExecutionEngine.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Inedo.SDK, Version=1.5.0.0, Culture=neutral, PublicKeyToken=29fae5dec3001603, processorArchitecture=MSIL">
-      <HintPath>..\packages\Inedo.SDK.1.5.0\lib\net452\Inedo.SDK.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="InedoLib, Version=1000.0.0.0, Culture=neutral, PublicKeyToken=112cfb71329714a6, processorArchitecture=MSIL">
-      <HintPath>..\packages\Inedo.SDK.1.5.0\lib\net452\InedoLib.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Inedo.SDK.1.5.0\lib\net452\Newtonsoft.Json.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <PackageReference Include="Inedo.SDK" Version="1.5.0">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+    <ProjectReference Include="..\BmBuildLogger\BmBuildLogger.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="InternalExtensions.cs" />
-    <Compile Include="Operations\DotNet\DotNetBuildOperation.cs" />
-    <Compile Include="Operations\DotNet\DotNetOperation.cs" />
-    <Compile Include="Operations\DotNet\DotNetPublishOperation.cs" />
-    <Compile Include="Operations\DotNet\DotNetVerbosityLevel.cs" />
-    <Compile Include="Operations\DotNet\GetDependenciesOperation.cs" />
-    <Compile Include="Operations\DotNet\SetProjectVersionOperation.cs" />
-    <Compile Include="Operations\VSTestOperation.cs" />
-    <Compile Include="SuggestionProviders\NuGetPackageSourceSuggestionProvider.cs" />
-    <Compile Include="SuggestionProviders\RuntimeSuggestionProvider.cs" />
-    <Compile Include="SuggestionProviders\TargetFrameworkSuggestionProvider.cs" />
-    <Compile Include="VariableFunctions\DotNetExePathVariableFunction.cs" />
-    <Compile Include="VariableFunctions\MSBuildToolsPathVariableFunction.cs" />
-    <Compile Include="VariableFunctions\VsTestExePathVariableFunction.cs" />
-    <Compile Include="VariableFunctions\SignToolPathVariableFunction.cs" />
-    <Compile Include="Operations\XdtTransformOperation.cs" />
-    <Compile Include="Operations\DotNet\WriteAssemblyInfoVersionsOperation.cs" />
-    <Compile Include="Operations\MSBuild\BuildMSBuildProjectOperation.cs" />
-    <Compile Include="Operations\SignBinaryOperation.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="SuggestionProviders\TargetPlatformSuggestionProvider.cs" />
-    <Compile Include="SuggestionProviders\BuildConfigurationSuggestionProvider.cs" />
-    <Compile Include="WindowsSdkExtensionConfigurer.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Targets\Microsoft.ReportingServices.targets" />
-    <EmbeddedResource Include="Targets\Microsoft.WebApplication.targets" />
-    <EmbeddedResource Include="Targets\Microsoft.WebApplication35.targets" />
-    <EmbeddedResource Include="Targets\Microsoft.WebApplication40.targets" />
-    <EmbeddedResource Include="Targets\Microsoft.WebApplication.VS11.targets" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\BmBuildLogger\BmBuildLogger.csproj">
-      <Project>{888f489a-f599-4cc9-854b-59fc8d9ecd0d}</Project>
-      <Name>BmBuildLogger</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Targets\Microsoft.WebApplication40.Build.Tasks.Dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Targets\Microsoft.WebApplication.VS11.Build.Tasks.Dll" />
+    <EmbeddedResource Include="Targets\*" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\ctt.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="vswhere.exe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>powershell -Command "if (Test-Path C:\Projects\Extensions\Shared -PathType Container) { Compress-Archive -Path '$(TargetDir)*' -DestinationPath C:\Projects\Extensions\Shared\$(TargetName).zip -Force;   Move-Item C:\Projects\Extensions\Shared\$(TargetName).zip -Destination C:\Projects\Extensions\Shared\$(TargetName).inedox -Force }"</PostBuildEvent>
-  </PropertyGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>
