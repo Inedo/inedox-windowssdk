@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <AssemblyName>InedoCore</AssemblyName>
+    <AssemblyName>BmBuildLogger</AssemblyName>
     <RootNamespace>Inedo.BmBuildLogger</RootNamespace>
     <OutputType>Library</OutputType>
     <TargetFramework>net452</TargetFramework>
